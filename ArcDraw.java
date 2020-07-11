@@ -113,7 +113,7 @@ public class ArcDraw {
 	
 	/* x0, y0
 	 * width, height
-	 * theta
+	 * phi
 	 * large, sweep flag
 	 * xk, yk
 	 * */
