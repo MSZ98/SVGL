@@ -12,6 +12,9 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+
+
+
 public class ArcDraw {
 
 	private BufferedImage image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
@@ -38,6 +41,12 @@ public class ArcDraw {
 		
 		panel.setDoubleBuffered(true);
 		
+		
+		
+		
+		
+		
+		
 		panel.addMouseMotionListener(new MouseMotionAdapter() {public void mouseDragged(MouseEvent e) {
 			
 			int xk = e.getX();
@@ -50,29 +59,26 @@ public class ArcDraw {
 			
 			// x0, y0, w, h, 0, 0, 0, x, y
 			
-			int w = 50;
-			int h = 100;
-			int n = 10;
+			int w = 40;
+			int h = 80;
+			int n = 50;
+			boolean sweep = true;
 			
 			
-			ArcPoints ap = getArcPoints(x0, y0, w, h, 0, large, false, xk, yk, 50);
 			
+			
+			// DRAWING LINES
+			ArcPoints ap = getArcPoints(x0, y0, w, h, 0, large, sweep, xk, yk, n);
 			
 			if(ap != null) {
 			
-				for(int i = 0;i < ap.x.length - 1;i++) {
-					g.drawLine(ap.x[i], ap.y[i], ap.x[i + 1], ap.y[i + 1]);
-				}
-				//g.drawLine(ap.x[0], ap.y[0], ap.x[9], ap.y[9]);
-				g.drawLine(x0, y0, xk, yk);
-			
-			
-				//System.out.println(points[0].length);
+				for(int i = 0;i < ap.x.length - 1;i++)
+					g.drawLine((int)ap.x[i], (int)ap.y[i], (int)ap.x[i + 1], (int)ap.y[i + 1]);
 			
 			}
 			
 			
-			//g.drawLine(x0, y0, xk, yk);
+			
 			
 			
 			frame.repaint();
@@ -91,78 +97,104 @@ public class ArcDraw {
 		}});
 		
 		
-		
-		
 	}
-	
-	
-	
-	
-	public void clear() {
-		Graphics g = image.getGraphics();
-		g.setColor(Color.white);
-		g.fillRect(0, 0, image.getWidth(), image.getHeight());
-	}
-	
-	
 	
 	
 	public class ArcPoints {
-		public int[] x, y;
+		public double[] x, y;
 	}
 	
-	/* x0, y0
-	 * width, height
-	 * phi
-	 * large, sweep flag
-	 * xk, yk
+	/* x1, y1 - first endpoint od an elliptical arc
+	 * radius x, radius y of an ellipse
+	 * phi - x axis rotation in degrees
+	 * large, sweep - flags
+	 * x2, y2 - second endpoint of an ellipse
 	 * */
-	public ArcPoints getArcPoints(double x0, double y0, double w, double h, double phi, boolean large, boolean sweep, double xk, double yk, int points) { 
+	public ArcPoints getArcPoints(double x1, double y1, double rx, double ry, double phi, boolean large, boolean sweep, double x2, double y2, int points) { 
+
+		// An ellipse parametric equation for getting the ellipse points is:
+		// x = cx + cos(phi) * rx * cos(t) - sin(phi) * ry * sin(t)
+		// y = cy + cos(phi) * ry * sin(t) + sin(phi) * rx * cos(t)
 		
 		ArcPoints arcPoints = new ArcPoints();
 		
 		phi = Math.toRadians(phi);
 		
 		double sinPhi = Math.sin(phi);
-		double cosPhi = Math.cos(phi);	
-		if(sweep) {
-			sinPhi = Math.cos(phi);
-			cosPhi = Math.sin(phi);
+		double cosPhi = Math.cos(phi);
+
+		// x prime, y prime, commonly used in calculations below
+		double xp = cosPhi * (x1 - x2) / 2 + sinPhi * (y1 - y2) / 2;
+		double yp = -sinPhi * (x1 - x2) / 2 + cosPhi * (y1 - y2) / 2;
+		
+		// radius square, x prime square, it will be used frequently below
+		double rx2 = rx * rx;
+		double ry2 = ry * ry;
+		double xp2 = xp * xp;
+		double yp2 = yp * yp;
+		
+		// now it's time to check if radius of ellipse isn't too large, it's here, because we need x prime and y prime squares
+		// if T is greater, than 0, radius shoud be multiplied by sqrt(T)
+		double T = xp2 / rx2 + yp2 / ry2; 
+		if(T > 1) {
+			rx *= Math.sqrt(T);
+			ry *= Math.sqrt(T);
+			rx2 = rx * rx;
+			ry2 = ry * ry;
 		}
-		double sinPhi2 = sinPhi * sinPhi;
-		double cosPhi2 = cosPhi * cosPhi;
-		double c = (x0 - xk) / (y0 - yk);
-		double b = Math.atan(h / w * (c * cosPhi - sinPhi) / (c * sinPhi - cosPhi));
-		double a = Math.asin(0.5 * (x0 - xk) / (h * sinPhi * Math.cos(b) - w * cosPhi * Math.sin(b)));
-		double t1 = a + b;
-		double t2 = b - a;
-		double xm = (x0 * cosPhi - yk * sinPhi - w * (Math.cos(t1) * cosPhi2 - Math.cos(t2) * sinPhi2) - h * sinPhi * cosPhi * (Math.sin(t1) - Math.sin(t2))) / (cosPhi2 - sinPhi2);
-		double ym = (x0 * sinPhi - yk * cosPhi - h * (Math.sin(t1) * sinPhi2 - Math.sin(t2) * cosPhi2) - w * sinPhi * cosPhi * (Math.cos(t1) - Math.cos(t2))) / (sinPhi2 - cosPhi2);
 		
-		arcPoints.x = new int[points];
-		arcPoints.y = new int[points];
+		// center point prime, used to calculate cender point and angles of arc drawing
+		double cxp = (large != sweep ? 1 : -1) * Math.sqrt(Math.abs(rx2 * ry2 - rx2 * yp2 - ry2 * xp2) / (rx2 * yp2 + ry2 * xp2)) * rx * yp / ry;
+		double cyp = (large != sweep ? 1 : -1) * Math.sqrt(Math.abs(rx2 * ry2 - rx2 * yp2 - ry2 * xp2) / (rx2 * yp2 + ry2 * xp2)) * -ry * xp / rx;
 		
-		double t0 = Math.min(t1, t2);
-		double tk = Math.max(t1, t2);
+		// center point x, y, used to draw ellipse.
+		double cx = cosPhi * cxp - sinPhi * cyp + (x1 + x2) / 2;
+		double cy = sinPhi * cxp + cosPhi * cyp + (y1 + y2) / 2;
+	
+		double ux, uy, vx, vy, a, b;
 		
-		t0 += large ? 2 * Math.PI : 0;
+		ux = 1;
+		uy = 0;
+		vx = (xp - cxp) / rx;
+		vy = (yp - cyp) / ry;
+		a = Math.atan2(uy, ux);
+        b = Math.atan2(vy, vx);
+        
+		double t1 = b >= a ? b - a : 2 * Math.PI - (a - b);
 		
+		ux = vx;
+		uy = vy;
+		vx = (-xp - cxp) / rx;
+		vy = (-yp - cyp) / ry;
+		a = Math.atan2(uy, ux);
+        b = Math.atan2(vy, vx);
+		
+		double dt = b >= a ? b - a : 2 * Math.PI - (a - b);
+
+		if(sweep) dt += dt < 0 ? 2 * Math.PI : 0;
+		else dt -= dt > 0 ? 2 * Math.PI : 0;
+		
+		// calculating points
+		arcPoints.x = new double[points];
+		arcPoints.y = new double[points];
+		dt /= points;
 		for(int i = 0;i < points - 1;i++) {
-			double t = t0 + i * (tk - t0) / (points - 1);
-			arcPoints.x[i] = (int)(cosPhi * (xm + w * Math.cos(t)) + sinPhi * (ym + h * Math.sin(t)));
-			arcPoints.y[i] = (int)(sinPhi * (xm + w * Math.cos(t)) + cosPhi * (ym + h * Math.sin(t)));
+			arcPoints.x[i] = cx + Math.cos(phi) * rx * Math.cos(t1 + i * dt) - Math.sin(phi) * ry * Math.sin(t1 + i * dt);
+			arcPoints.y[i] = cy + Math.cos(phi) * ry * Math.sin(t1 + i * dt) + Math.sin(phi) * rx * Math.cos(t1 + i * dt);
 		}
-		
-		arcPoints.x[arcPoints.x.length - 1] = (int)(cosPhi * (xm + w * Math.cos(tk)) + sinPhi * (ym + h * Math.sin(tk)));
-		arcPoints.y[arcPoints.y.length - 1] = (int)(sinPhi * (xm + w * Math.cos(tk)) + cosPhi * (ym + h * Math.sin(tk)));
+		arcPoints.x[arcPoints.x.length - 1] = x2;
+		arcPoints.y[arcPoints.y.length - 1] = y2;
 		
 		return arcPoints;
 	}
 	
-
 	
-	
-	
+	// draws huge rectangle, that makes JPanel clear
+	public void clear() {
+		Graphics g = image.getGraphics();
+		g.setColor(Color.white);
+		g.fillRect(0, 0, image.getWidth(), image.getHeight());
+	}
 	
 	public static void main(String[] args) {
 		new ArcDraw();
