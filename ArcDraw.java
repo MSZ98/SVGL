@@ -158,7 +158,7 @@ public class ArcDraw {
 		vx = (xp - cxp) / rx;
 		vy = (yp - cyp) / ry;
 		a = Math.atan2(uy, ux);
-        b = Math.atan2(vy, vx);
+        	b = Math.atan2(vy, vx);
         
 		double t1 = b >= a ? b - a : 2 * Math.PI - (a - b);
 		
@@ -167,7 +167,7 @@ public class ArcDraw {
 		vx = (-xp - cxp) / rx;
 		vy = (-yp - cyp) / ry;
 		a = Math.atan2(uy, ux);
-        b = Math.atan2(vy, vx);
+        	b = Math.atan2(vy, vx);
 		
 		double dt = b >= a ? b - a : 2 * Math.PI - (a - b);
 
