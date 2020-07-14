@@ -56,10 +56,7 @@ public class SVG {
 		// Parse id
 		id = findExpression(svgString, "id *= *\"(.*?)\"");
 		
-		try {
-			System.out.println(SVG.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath().substring(1));
-		} catch(Exception e) {}
-		
+
 		// PATHS PARSING
 				
 		// Creating path tags list
@@ -156,7 +153,7 @@ public class SVG {
 		}
 		
 		
-		
+		/*
 		// This is test code, that prints every path and its points
 		for(Path path : paths) for(Command command : path.getCommands()) {
 			System.out.println("\n" + command.getLetter() + ":");
@@ -165,7 +162,7 @@ public class SVG {
 			}
 		}
 		System.out.println("================================");
-		
+		*/
 		
 		
 		
@@ -496,7 +493,6 @@ public class SVG {
 					y0 = p[p.length - 1];
 				}
 				if(command.getLetter() == 'm') {
-					System.out.println("m ==> x0 = " + x0);
 					int x = 0, y = 1;
 					double[] p = command.getPoints();
 					ix = x0 + p[x];
@@ -641,7 +637,6 @@ public class SVG {
 				}
 				if(command.getLetter() == 'z') {
 					drawLineMethod.drawLine(x0, y0, ix, iy);
-					System.out.println("z ==> x0 = " + x0);
 					x0 = ix;
 					y0 = iy;
 				}
