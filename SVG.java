@@ -5,19 +5,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * A class for parsing SVG files and extracting drawing instructions.
+ */
 public class SVG {
+
 
 	private double width, height;
 	private ViewBox viewBox;
@@ -26,8 +18,13 @@ public class SVG {
 	private ArrayList<Tag> tagList = new ArrayList<Tag>();
 	private Path[] paths = null;
 	
-	
+
 	// Huge SVG constructor parses the SVG file and outputs tag list and paths array, which contains very important Command List (list of figures to draw)
+	/**
+	 * Constructs an SVG object by parsing an SVG file.
+	 * 
+	 * @param svgFile The SVG file to be parsed.
+	 */
 	public SVG(File svgFile) {
 		
 		// Converting svg file to the form of String variable
@@ -55,7 +52,6 @@ public class SVG {
 		
 		// Parse id
 		id = findExpression(svgString, "id *= *\"(.*?)\"");
-		
 
 		// PATHS PARSING
 				
@@ -65,7 +61,7 @@ public class SVG {
 		
 		// Creating array of Path objects, whose fields will be filled with data extracted from tags
 		Path[] paths = new Path[pathList.size()];
-		
+
 		// Parsing type, style and id
 		for(int x = 0;x < paths.length;x++) {
 			paths[x] = new Path();
@@ -142,7 +138,6 @@ public class SVG {
 				double[] points = new double[size];
 				for(int z = 0;z < size;z++) points[z] = pointsList.get(z);
 				
-				
 				// Writing data into new Objects of type Command
 				commands[y] = new Command(letter, points);
 			}
@@ -151,7 +146,6 @@ public class SVG {
 			paths[x].commands = commands;
 			this.paths = paths;
 		}
-		
 		
 		/*
 		// This is test code, that prints every path and its points
@@ -164,17 +158,15 @@ public class SVG {
 		System.out.println("================================");
 		*/
 		
-		
-		
 	} // This is the end of huge constructor of SVG.
 	
 
-	
-	
-	
-	
-	
-	// Finds real numbers in source string and returns them as a double array
+	/**
+	 * Finds real numbers in the source string and returns them as a double array.
+	 * 
+	 * @param source The source string containing numeric values
+	 * @return A double array containing the extracted real numbers from the source string
+	 */
 	private double[] findNumbers(String source) {
 		if(source == null) return null;
 		Pattern pattern = Pattern.compile("([-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)");
@@ -186,8 +178,13 @@ public class SVG {
 		return numbers;
 	}
 	
-	
+
 	// Uses findTag() method to fill tagList with tags
+	/**
+	 * Uses the findTag() method to fill the tagList with tags extracted from the source string.
+	 * 
+	 * @param source The source string containing tags to be extracted
+	 */
 	private void findTags(String source) {
 		Tag tag = null;
 		do {
@@ -200,8 +197,14 @@ public class SVG {
 		} while(tag != null);
 	}
 	
-	
+
 	// Finds any tag in source string and removes the tag from it
+	/**
+	 * Finds the first occurrence of a tag in the source string and removes the tag from it.
+	 * 
+	 * @param source The source string in which to search for the tag
+	 * @return The extracted Tag object containing information about the found tag, or null if no tag is found
+	 */
 	private Tag findTag(String source) {
 		
 		// Startup declarations
@@ -235,14 +238,30 @@ public class SVG {
 		return tag;
 	}
 	
-	
-	// Returns source string with removed tag
+
+	/**
+	 * Removes the specified tag content from the source string and returns the modified string.
+	 * 
+	 * @param source The source string from which to remove the Tag
+	 * @param tag The tag to be removed, containing the content to be deleted
+	 * @return A new string with the specified tag content removed
+	 */
 	private String removeTagFromString(String source, Tag tag) {
 		return source.replace("<" + tag.getContent() + ">", "");
 	}
 	
 	
 	// Returns source string with replaced </...> endtags with /> endTags. It makes finding tags easy and it's done once.
+	/**
+	 * Replaces all </...> end tags with /> end tags in the source string, simplifying tag identification.
+	 * 
+	 * This method modifies the source string by replacing the traditional </...> end tags
+	 * with self-closing style end tags like />. This replacement simplifies the process of
+	 * identifying and handling tags in the source string.
+	 * 
+	 * @param source The source string in which to replace the end tags
+	 * @return A new string with </...> end tags replaced by /> end tags
+	 */
 	private String unifyEndTags(String source) {
 		Pattern pattern = Pattern.compile("</" + "(.*?)" + ">");
 		Matcher matcher = pattern.matcher(source);
@@ -250,7 +269,16 @@ public class SVG {
 	}
 	
 	
-	// Returns expression from source string
+	/**
+	 * Finds and returns the expression from the source string based on the provided regular expression.
+	 * 
+	 * This method searches for a substring within the source string that matches the given regular expression.
+	 * If a match is found, the captured expression is returned; otherwise, null is returned.
+	 * 
+	 * @param source The source string in which to search for the expression
+	 * @param regex The regular expression pattern to match the desired expression
+	 * @return The captured expression if found, or null if no match is found
+	 */
 	private String findExpression(String source, String regex) {
 		Pattern p = Pattern.compile(regex);
 		Matcher matcher = p.matcher(source);
@@ -258,7 +286,9 @@ public class SVG {
 	}
 	
 	
-	// Temporary class used in parsing Paths
+	/**
+	 * Represents a group of SVG elements that share a common transformation.
+	 */
 	public class Group {
 		private Tag tag;
 		private double transformX, transformY;
@@ -273,7 +303,11 @@ public class SVG {
 	}
 	
 	
-	// Very important class, storage of figures to be drawn. There is an array of them in the top of SVG class. They're parsed in SVG class constructor.
+	/**
+	 * Represents a path in an SVG file, consisting of drawing commands.
+	 * 
+	 * It's a very important class, storage of figures to be drawn. There is an array of them in the top of SVG class. They're parsed in SVG class constructor.
+	 */
 	public class Path {
 		private String type, style, id;
 		private Command[] commands;
@@ -287,7 +321,11 @@ public class SVG {
 	}
 	
 	
-	// Path is storage of Commands. Commands have a letter, which is eg. L (line), C (bezier curve) and bunch of x points and y points, so they store figures to be drawn.
+	/**
+	 * Represents a drawing command within an SVG path.
+	 * 
+	 * Path is storage of Commands. Commands have a letter, which is eg. L (line), C (bezier curve) and bunch of x points and y points, so they store figures to be drawn.
+	 */
 	public class Command {
 		private char letter;
 		private double[] points;
@@ -300,7 +338,11 @@ public class SVG {
 	}
 
 	
-	// Tag is first stage of parsing SVG file. Tag is <... /> statement in file and all higher level things like Paths, Groups and Commands are then parsed from Tags.
+	/**
+	 * Represents an SVG tag found within the SVG content.
+	 * 
+	 * Tag is first stage of parsing SVG file. Tag is <... /> statement in file and all higher level things like Paths, Groups and Commands are then parsed from Tags.
+	 */
 	public class Tag {
 		private int startIndex, endIndex;
 		private String content, name;
@@ -320,7 +362,11 @@ public class SVG {
 	}
 	
 	
-	// ViewBox are just pack of 4 double variables, which define sight area of an image.
+	/**
+	 * Represents the viewBox attribute of an SVG, defining the visible area.
+	 * 
+	 * ViewBox are just pack of 4 double variables, which define sight area of an image.
+	 */
 	public class ViewBox {
 		private double x1, y1, x2, y2;
 		public ViewBox(double x1, double y1, double x2, double y2) {
@@ -337,14 +383,69 @@ public class SVG {
 	
 	
 	// SETTERS AND GETTERS
-	public double getWidth() {return width;}
-	public double getHeight() {return height;}
-	public ViewBox getViewBox() {return viewBox;}
-	public String getVersion() {return version;}
-	public String getId() {return id;}
+	
+
+	/**
+	 * Returns the width of the SVG canvas.
+	 * 
+	 * @return The width of the SVG canvas
+	 */
+	public double getWidth() {
+		return width;
+	}
+	
+
+	/**
+	 * Returns the height of the SVG canvas.
+	 * 
+	 * @return The height of the SVG canvas
+	 */
+	public double getHeight() {
+		return height;
+	}
+
+
+	/**
+	 * Returns the viewBox of the SVG.
+	 * 
+	 * @return The viewBox of the SVG
+	 */
+	public ViewBox getViewBox() {
+		return viewBox;
+	}
+
+
+	/**
+	 * Returns the version of the SVG.
+	 * 
+	 * @return The version of the SVG
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+
+	/**
+	 * Returns the ID of the SVG.
+	 * 
+	 * @return The ID of the SVG
+	 */
+	public String getId() {
+		return id;
+	}
+
+
+	/**
+	 * Returns an array of Path objects representing the paths in the SVG.
+	 * 
+	 * @return An array of Path objects representing the paths in the SVG
+	 */
 	public Path[] getPaths() {return paths;}
 	
 	
+	/**
+	 * Represents x and y coordinates as arrays.
+	 */
 	public class Points {
 		public Points(double[] x, double[] y) {
 			this.x = x;
@@ -356,12 +457,28 @@ public class SVG {
 		public double[] x, y;
 	}
 	
+
 	/* x1, y1 - first endpoint od an elliptical arc
 	 * radius x, radius y of an ellipse
 	 * phi - x axis rotation in degrees
 	 * large, sweep - flags
 	 * x2, y2 - second endpoint of an ellipse
 	 * */
+	/**
+	 * Gets the points for an elliptical arc using the specified parameters.
+	 * 
+	 * @param x1 The starting x-coordinate
+	 * @param y1 The starting y-coordinate
+	 * @param rx The x-radius of the ellipse
+	 * @param ry The y-radius of the ellipse
+	 * @param phi The rotation angle of the ellipse in degrees
+	 * @param large Whether the arc sweeps a large angle
+	 * @param sweep Whether the arc sweeps in a positive direction
+	 * @param x2 The ending x-coordinate
+	 * @param y2 The ending y-coordinate
+	 * @param points The number of points to generate
+	 * @return The Points object containing the arc points
+	 */
 	public Points getArcPoints(double x1, double y1, double rx, double ry, double phi, boolean large, boolean sweep, double x2, double y2, int points) { 
 
 		// An ellipse parametric equation for getting the ellipse points is:
@@ -408,8 +525,8 @@ public class SVG {
 		vx = (xp - cxp) / rx;
 		vy = (yp - cyp) / ry;
 		a = Math.atan2(uy, ux);
-        b = Math.atan2(vy, vx);
-        
+		b = Math.atan2(vy, vx);
+		
 		double t1 = b >= a ? b - a : 2 * Math.PI - (a - b);
 		
 		ux = vx;
@@ -417,7 +534,7 @@ public class SVG {
 		vx = (-xp - cxp) / rx;
 		vy = (-yp - cyp) / ry;
 		a = Math.atan2(uy, ux);
-        b = Math.atan2(vy, vx);
+		b = Math.atan2(vy, vx);
 		
 		double dt = b >= a ? b - a : 2 * Math.PI - (a - b);
 
@@ -439,7 +556,23 @@ public class SVG {
 		return arcPoints;
 	}
 
-	
+
+	/**
+	 * Calculates and returns points along a quadratic Bezier curve defined by control points.
+	 * 
+	 * This method generates points along a quadratic Bezier curve based on the provided control points
+	 * and the number of desired points. The curve is defined by three control points: (x1, y1), (x2, y2),
+	 * and (x3, y3). The number of points generated is determined by the 'points' parameter.
+	 * 
+	 * @param x1 The x-coordinate of the first control point
+	 * @param y1 The y-coordinate of the first control point
+	 * @param x2 The x-coordinate of the second control point
+	 * @param y2 The y-coordinate of the second control point
+	 * @param x3 The x-coordinate of the third control point
+	 * @param y3 The y-coordinate of the third control point
+	 * @param points The number of points to generate along the Bezier curve, including the endpoints
+	 * @return A Points object containing arrays of x and y coordinates of points along the Bezier curve
+	 */
 	public Points getQBezierPoints(double x1, double y1, double x2, double y2, double x3, double y3, int points) {
 		double[] x = new double[points];
 		double[] y = new double[points];
@@ -454,6 +587,24 @@ public class SVG {
 	}
 	
 	
+	/**
+	 * Calculates and returns points along a cubic Bezier curve defined by control points.
+	 * 
+	 * This method generates points along a cubic Bezier curve based on the provided control points
+	 * and the number of desired points. The curve is defined by four control points: (x1, y1), (x2, y2),
+	 * (x3, y3), and (x4, y4). The number of points generated is determined by the 'points' parameter.
+	 * 
+	 * @param x1 The x-coordinate of the first control point
+	 * @param y1 The y-coordinate of the first control point
+	 * @param x2 The x-coordinate of the second control point
+	 * @param y2 The y-coordinate of the second control point
+	 * @param x3 The x-coordinate of the third control point
+	 * @param y3 The y-coordinate of the third control point
+	 * @param x4 The x-coordinate of the fourth control point
+	 * @param y4 The y-coordinate of the fourth control point
+	 * @param points The number of points to generate along the Bezier curve, including the endpoints
+	 * @return A Points object containing arrays of x and y coordinates of points along the Bezier curve
+	 */
 	public Points getCBezierPoints(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, int points) {
 		double[] x = new double[points];
 		double[] y = new double[points];
@@ -468,9 +619,17 @@ public class SVG {
 	}
 	
 	
+	/**
+	 * Draws the paths contained in this SVG using the specified drawing method.
+	 * 
+	 * This method iterates through the paths contained in the SVG and interprets the commands within each path
+	 * to generate the corresponding lines or curves. The drawing method is provided through the 'drawLineMethod' parameter.
+	 * 
+	 * @param curvePoints The number of points to generate along curves, influencing their smoothness
+	 * @param drawLineMethod The drawing method to be used for drawing lines or curves between points
+	 */
 	public void draw(int curvePoints, DrawLineMethod drawLineMethod) {
 		if(paths == null) return;
-		
 		
 		for(Path path : paths) {
 			
@@ -478,7 +637,6 @@ public class SVG {
 			double y0 = 0;
 			double ix = 0; // initial x
 			double iy = 0; // initial y
-			
 			
 			for(Command command : path.getCommands()) {
 				
@@ -641,44 +799,25 @@ public class SVG {
 					y0 = iy;
 				}
 				
-				
-				
-				
-				
-				
 			}
 		} // end of paths loop
 			
-			
-			
-			
-		
-		
-		
-		
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * An interface for defining a method to draw a line between two points.
+	 */
 	public interface DrawLineMethod {
 		public void drawLine(double x1, double y1, double x2, double y2);
 	}
 	
 	
-	
-	
+	/**
+	 * Test main() method that loads svg file.
+	 * 
+	 * @param args main args
+	 */
 	public static void main(String[] args) {
 		
 		SVG aaa = new SVG(new File("C:\\Users\\MSZ\\Desktop\\nebula.svg"));
@@ -688,12 +827,8 @@ public class SVG {
 			window.drawLine((int)Math.round(x1), (int)Math.round(y1), (int)Math.round(x2), (int)Math.round(y2));
 		});
 		
-		
-		
-		
-		
-		
 	}
+
 
 }
 
