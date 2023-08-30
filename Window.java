@@ -12,13 +12,19 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+
+// THIS IS AN EXAMPLE USE OF THE SVGL
+
+
 public class Window extends JFrame {
+
 
 	private static final long serialVersionUID = 1L;
 	
 	private BufferedImage image;
 	private JPanel content;
 	
+
 	public Window() {
 		super("Drawing window");
 		getContentPane().setBackground(Color.white);
@@ -63,6 +69,7 @@ public class Window extends JFrame {
 		content.repaint();
 	}
 	
+
 	public void clear() {
 		Graphics2D g = (Graphics2D)image.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
